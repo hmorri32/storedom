@@ -7,23 +7,20 @@ describe "ActiveRecord American Gladiator" do
       Item.create(name: "Trap Door")
       Item.create(name: "Crash Pad", status: "inactive")
 
-      # Changeable Start
-      items = Item.all
-      # Changeable End
+      items = Item.unscoped.all
 
       expect(items.count).to eq 3
     end
   end
 
   context "Powerball" do
-    xit "returns all items containing Powerball" do
+    it "returns all items containing Powerball" do
       Item.create(name: "Powerball Ball")
       Item.create(name: "Powerball Goal")
       Item.create(name: "Trap Door")
 
-      # Changeable Start
-      items = Item.all
-      # Changeable End
+      items = Item.where(:name).where('name = ?', 'Powerball')
+
 
       expect(items.count).to eq(2)
     end
