@@ -110,7 +110,7 @@ describe "ActiveRecord American Gladiator" do
   end
 
   context "Atlasphere" do
-    xit "returns most popular items" do
+    it "returns most popular items" do
       scoring_pod = Item.create(name: "Scoring Pod")
       lights      = Item.create(name: "Lights")
       smoke       = Item.create(name: "Smoke")
@@ -119,25 +119,19 @@ describe "ActiveRecord American Gladiator" do
       Order.create(items: [lights, smoke, smoke])
       Order.create(items: [lights, lights, lights])
 
-      # Start
       items_with_count = Hash.new(0)
+      Order.all.each { |order| order.items.each { |item| items_with_count[item.id] += 1 }}
 
-      Order.all.each do |order|
-        order.items.each do |item|
-          items_with_count[item.id] += 1
-        end
-      end
+      top_items_with_count = items_with_count.sort_by { |item_id, count| count }.reverse.first(2)
+      top_item_ids         = top_items_with_count.first.zip(top_items_with_count.last).first
+      most_popular_items   = top_item_ids.map { |id| Item.find(id) }
 
-      top_items_with_count = items_with_count.sort_by { |item_id, count|
-        count
-      }.reverse.first(2)
-
-      top_item_ids = top_items_with_count.first.zip(top_items_with_count.last).first
-
-      most_popular_items = top_item_ids.map do |id|
-        Item.find(id)
-      end
-
+      most_popular_items = Item.select("items.*, count(order_items.item_id) AS count")
+                               .joins(:order_items)
+                               .group("items.id")
+                               .order("count")
+                               .reverse_order
+                               .take(2)
 
       # Hints: http://apidock.com/rails/ActiveRecord/QueryMethods/select
       #        http://stackoverflow.com/questions/8696005/rails-3-activerecord-order-by-count-on-association
